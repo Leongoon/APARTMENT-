@@ -40,7 +40,9 @@
 ## CI 결과
 
 - 실행 #1 (커밋 `fcb5a75`): 성공 — 단위 테스트 → 웹 빌드 → `assembleRelease` → `apk-latest` 사전 릴리스 갱신까지 약 2분.
-- 릴리스의 `home-furniture-3d.apk`(약 1.07MB)를 내려받아 확인: APK 서명 블록 있음, `assets/index.html` 포함.
+- 실행 #2 (커밋 `c586ef7`, 파일 저장 경로 변경): 성공 — `apk-latest` 가 빌드 #2 로 갱신됨.
+- 릴리스의 `home-furniture-3d.apk`(약 1.07MB)를 내려받아 확인: APK 서명 블록 있음, zip 무결성 정상, `assets/index.html` 포함(웹폰트 링크 없음 = 오프라인 동작).
+- 참고: Actions 로그에 "Node.js 20 기반 액션이 Node 24 로 실행됨" 경고가 있음(빌드 영향 없음). 나중에 액션 버전을 올리면 사라짐.
 - 이후 푸시도 같은 워크플로가 자동으로 APK 를 다시 만들어 같은 주소에 올림:
   `https://github.com/Leongoon/APARTMENT-/releases/download/apk-latest/home-furniture-3d.apk`
 
