@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>등촌동 복층 가구배치</title>
+<meta name="description" content="등촌동 복층 1층 평면도를 3D로 만들어 가구를 자유롭게 배치해 보는 시뮬레이터">
+<!--FONTS--><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap"><!--/FONTS-->
+<style>/*__CSS__*/</style>
+</head>
+<body>
+<div id="app" class="app">
+  <div id="viewport" class="viewport" aria-label="3D 평면도. 한 손가락으로 끌면 회전, 두 손가락으로 확대와 이동"></div>
+  <div id="labels" class="labels" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="brand glass">
+      <span class="brand-title">등촌동 복층 <b>1층</b></span>
+      <span class="brand-sub">전용 50.16㎡ · <span id="planSize">6.36 × 7.38 m (추정)</span></span>
+    </div>
+    <div id="layoutTabs" class="layouts glass" role="tablist" aria-label="배치안"></div>
+  </header>
+
+  <div id="rail" class="rail" aria-label="보기 설정">
+    <button id="btnView" class="rail-btn glass" type="button"></button>
+    <button id="btnWalls" class="rail-btn glass" type="button"></button>
+    <button id="btnEye" class="rail-btn glass" type="button"></button>
+    <button id="btnHome" class="rail-btn glass" type="button"></button>
+  </div>
+
+  <div id="hint" class="hint glass" role="status"></div>
+  <div id="banner" class="banner" hidden>
+    <p>평면도에 그려진 가구를 <b>예시</b>로 놓아 두었어요.</p>
+    <button id="bannerClear" class="btn btn-quiet" type="button">예시 비우기</button>
+    <button id="bannerKeep" class="btn btn-quiet" type="button">닫기</button>
+  </div>
+
+  <div id="eyebar" class="eyebar glass" hidden>
+    <span>1인칭 보기 · 끌어서 둘러보기, 바닥을 탭하면 그 자리로 이동</span>
+    <button id="eyeExit" class="btn btn-primary btn-sm" type="button">3D로 돌아가기</button>
+  </div>
+
+  <div id="selbar" class="selbar" hidden>
+    <div class="selbar-head"><b id="selName"></b><span id="selSize" class="num"></span></div>
+    <div class="selbar-actions">
+      <button type="button" data-act="move"></button>
+      <button type="button" data-act="edit"></button>
+      <button type="button" data-act="dup"></button>
+      <button type="button" data-act="del"></button>
+      <button type="button" data-act="close" aria-label="선택 해제"></button>
+    </div>
+  </div>
+
+  <nav id="toolbar" class="toolbar" aria-label="도구">
+    <button id="toolRotate" class="tool" type="button" aria-pressed="true"></button>
+    <button id="toolPan" class="tool" type="button" aria-pressed="false"></button>
+    <button id="toolAdd" class="tool tool-primary" type="button"></button>
+    <button id="toolList" class="tool" type="button"></button>
+    <button id="toolMore" class="tool" type="button"></button>
+  </nav>
+
+  <section id="placebar" class="placebar" hidden aria-label="가구 배치">
+    <div class="pb-head">
+      <div class="pb-title"><b id="pbName"></b><span id="pbSize" class="num"></span></div>
+      <span id="pbStatus" class="status"></span>
+    </div>
+    <div class="pb-rotate" role="group" aria-label="가구 회전">
+      <button type="button" data-rot="-90" class="chip">−90°</button>
+      <button type="button" data-rot="-15" class="chip">−15°</button>
+      <label class="pb-angle"><span class="sr">회전 각도</span><input id="pbSlider" type="range" min="0" max="359" step="1" value="0"><output id="pbAngle" class="num">0°</output></label>
+      <button type="button" data-rot="15" class="chip">+15°</button>
+      <button type="button" data-rot="90" class="chip">+90°</button>
+    </div>
+    <div class="pb-mode">
+      <div class="seg" role="radiogroup" aria-label="한 손가락으로 끌 때">
+        <button id="pbMove" type="button" role="radio" aria-checked="true">가구 이동</button>
+        <button id="pbView" type="button" role="radio" aria-checked="false">시점 회전</button>
+      </div>
+      <button id="pbEdit" type="button" class="chip"></button>
+    </div>
+    <div class="pb-actions">
+      <button id="pbCancel" type="button" class="btn">취소</button>
+      <button id="pbConfirm" type="button" class="btn btn-primary"></button>
+    </div>
+  </section>
+
+  <div id="scrim" class="scrim" hidden></div>
+  <section id="sheet" class="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="sheet-grip" aria-hidden="true"></div>
+    <header class="sheet-head">
+      <h2 id="sheetTitle"></h2>
+      <button id="sheetClose" class="icon-btn" type="button" aria-label="닫기"></button>
+    </header>
+    <div id="sheetBody" class="sheet-body"></div>
+    <footer id="sheetFoot" class="sheet-foot" hidden></footer>
+  </section>
+
+  <div id="modal" class="modal" hidden role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h3 id="modalTitle"></h3>
+      <div id="modalBody" class="modal-body"></div>
+      <div id="modalActions" class="modal-actions"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
+  <div id="fatal" class="fatal" hidden></div>
+</div>
+<script>/*__JS__*/</script>
+</body>
+</html>

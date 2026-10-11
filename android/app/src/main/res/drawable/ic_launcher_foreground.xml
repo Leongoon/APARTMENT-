@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 모서리 두 벽이 선 방(돌하우스) 모양. 안전 영역(지름 66dp) 안에 그림 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:fillColor="#F3C22C" android:pathData="M54,52 L76,63 L54,74 L32,63 Z" />
+    <path android:fillColor="#FFFFFF" android:pathData="M32,63 L32,42 L54,31 L54,52 Z" />
+    <path android:fillColor="#C9D4F4" android:pathData="M54,52 L54,31 L76,42 L76,63 Z" />
+    <path android:fillColor="#2648B8" android:pathData="M44,64 L53,59.5 L60,63 L51,67.5 Z" />
+</vector>

@@ -1,0 +1,60 @@
+plugins {
+    id 'com.android.application'
+}
+
+// GitHub Actions 실행 번호를 버전으로 써서, 새 APK 를 기존 앱 위에 덮어 설치할 수 있게 함
+def runNumber = (System.getenv('GITHUB_RUN_NUMBER') ?: '1').toInteger()
+
+android {
+    namespace 'kr.home3d.dungchon'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'kr.home3d.dungchon'
+        minSdk 26
+        targetSdk 35
+        versionCode runNumber
+        versionName "1.0.${runNumber}"
+    }
+
+    // 개인 설치(사이드로드)용 고정 키. 매번 같은 키로 서명해야 업데이트 설치 시 저장된 배치가 유지된다.
+    // Play 스토어 배포용이 아님.
+    signingConfigs {
+        sideload {
+            storeFile file('debug.keystore')
+            storePassword 'android'
+            keyAlias 'androiddebugkey'
+            keyPassword 'android'
+        }
+    }
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.sideload
+        }
+        release {
+            minifyEnabled false
+            signingConfig signingConfigs.sideload
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.webkit:webkit:1.12.1'
+}
+
+// 웹 앱 빌드 결과(assets/index.html)가 없으면 빈 화면 APK 가 나오므로 빌드를 멈춘다
+def webAsset = file('src/main/assets/index.html')
+tasks.register('checkWebAsset') {
+    doLast {
+        if (!webAsset.exists()) {
+            throw new GradleException('app/src/main/assets/index.html 이 없습니다. 저장소 루트에서 먼저 `npm ci && npm run build` 를 실행하세요.')
+        }
+    }
+}
+tasks.matching { it.name == 'preBuild' }.configureEach { dependsOn 'checkWebAsset' }

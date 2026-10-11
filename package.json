@@ -1,0 +1,19 @@
+{
+  "name": "home-furniture-3d",
+  "version": "1.0.0",
+  "private": true,
+  "description": "등촌동 복층 1층 평면도 기반 3D 가구 배치 시뮬레이터 (Android/웹)",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs --watch --serve",
+    "test": "node --test tests/*.test.js",
+    "test:e2e": "node scripts/e2e.mjs"
+  },
+  "dependencies": {
+    "three": "0.170.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.24.2"
+  }
+}
