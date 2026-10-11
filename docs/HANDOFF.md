@@ -24,6 +24,7 @@
 ## 주요 결정과 이유
 
 1. **웹(three.js) + 안드로이드 WebView 래퍼**: 하나의 코드로 APK·브라우저·claude.ai Artifact 를 모두 지원. 빌드 결과는 단일 HTML(`dist/index.html`, 약 620KB)이라 오프라인 APK에 그대로 내장.
+   - 파일 저장 경로: APK 는 `window.AndroidBridge.saveFile`(MediaStore), Artifact 는 `claude.use('downloads')`, 일반 브라우저는 다운로드 링크 (`src/main.js` `saveFile()`).
 2. **도면 축척 추정**: 이미지에 치수가 없어 전용면적 50.16㎡를 1층 외곽선에 맞춰 역산(약 86px=1m → 실내 6.36×7.38m). 앱에서 실측값으로 보정 가능하게 함.
 3. **원본 평면도 이미지는 커밋하지 않음**: 공개 저장소이고 네이버 워터마크가 있는 이미지라서.
 4. **APK 서명 키 커밋**(`android/app/debug.keystore`, 비밀번호 `android`): 매 빌드 같은 키여야 업데이트 설치 시 저장된 배치(localStorage)가 유지됨. 개인 사이드로드용.
@@ -38,7 +39,15 @@
 
 ## CI 결과
 
-- 첫 푸시 후 확인 예정.
+- 실행 #1 (커밋 `fcb5a75`): 성공 — 단위 테스트 → 웹 빌드 → `assembleRelease` → `apk-latest` 사전 릴리스 갱신까지 약 2분.
+- 릴리스의 `home-furniture-3d.apk`(약 1.07MB)를 내려받아 확인: APK 서명 블록 있음, `assets/index.html` 포함.
+- 이후 푸시도 같은 워크플로가 자동으로 APK 를 다시 만들어 같은 주소에 올림:
+  `https://github.com/Leongoon/APARTMENT-/releases/download/apk-latest/home-furniture-3d.apk`
+
+## 배포 경로
+
+- APK: 위 릴리스 주소 (공개 저장소라 로그인 없이 받을 수 있음).
+- claude.ai Artifact(비공개, 사용자 본인만 열람): https://claude.ai/artifact/NK88bg9TBL9uKoohJnrjBW — `dist/artifact.html` 을 게시. `downloads` 기능을 선언해 화면 저장·파일 내보내기가 뷰어의 저장 확인 창으로 동작.
 
 ## 확인 필요 / 남은 작업
 

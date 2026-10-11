@@ -21,6 +21,13 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&
 const deg2rad = THREE.MathUtils.degToRad;
 const inIframe = (() => { try { return window.self !== window.top; } catch { return true; } })();
 const bridge = window.AndroidBridge || null;
+// claude.ai Artifact 안에서는 파일 저장을 뷰어의 downloads 기능으로 처리 (없으면 null)
+let downloadsApi = null;
+try {
+  if (window.claude && typeof window.claude.use === 'function') {
+    window.claude.use('downloads').then((d) => { downloadsApi = d; }).catch(() => {});
+  }
+} catch { /* 일반 브라우저·APK */ }
 const storage = (() => { try { return window.localStorage; } catch { return null; } })();
 
 const S = {
@@ -926,6 +933,30 @@ function downloadUrl(url, name) {
   a.click();
   a.remove();
 }
+function bytesFromBase64(b64) {
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+/** 이 환경에서 파일로 저장할 수 있는지 (APK · Artifact downloads · 일반 브라우저) */
+const canSaveFiles = () => !!bridge || !!downloadsApi || !inIframe;
+
+/** 파일 저장. base64 는 내용(이진은 base64, 텍스트는 utf8ToBase64). */
+async function saveFile(name, mime, base64) {
+  if (bridge) { toast(bridge.saveFile(name, mime, base64)); return; }
+  if (downloadsApi) {
+    try {
+      await downloadsApi.save({ filename: name, data: bytesFromBase64(base64) });
+      toast('저장했어요');
+    } catch (err) {
+      if (err && err.code === 'declined') return;
+      toast(err && err.code === 'rate_limited' ? '저장 창이 이미 열려 있어요' : '이 화면에서는 저장할 수 없어요');
+    }
+    return;
+  }
+  downloadUrl(`data:${mime};base64,${base64}`, name);
+}
 
 function takeScreenshot() {
   S.overlay.hide();
@@ -933,12 +964,11 @@ function takeScreenshot() {
   if (S.selectedId) select(S.selectedId);
   const name = `가구배치-${LAYOUT_NAMES[S.data.active].slice(-1)}-${stamp()}.png`;
   const actions = [];
-  if (bridge) actions.push({ label: '사진첩에 저장', cls: 'btn-primary', run: () => { toast(bridge.saveFile(name, 'image/png', base64FromDataUrl(url))); } });
-  else if (!inIframe) actions.push({ label: '이미지 저장', cls: 'btn-primary', run: () => downloadUrl(url, name) });
+  if (canSaveFiles()) actions.push({ label: bridge ? '사진첩에 저장' : '이미지 저장', cls: 'btn-primary', run: () => { saveFile(name, 'image/png', base64FromDataUrl(url)); } });
   actions.push({ label: '닫기' });
   modal({
     title: '화면 저장',
-    body: `<img src="${url}" alt="현재 배치 화면">${bridge ? '' : '<p style="margin:0">이미지를 길게 누르면 휴대폰에 저장할 수 있어요.</p>'}`,
+    body: `<img src="${url}" alt="현재 배치 화면">${canSaveFiles() ? '' : '<p style="margin:0">이미지를 길게 누르면 휴대폰에 저장할 수 있어요.</p>'}`,
     actions,
   });
 }
@@ -966,8 +996,7 @@ function exportDialog() {
       }
     },
   }];
-  if (bridge) actions.push({ label: '파일로 저장', run: () => { toast(bridge.saveFile(name, 'application/json', utf8ToBase64(text))); } });
-  else if (!inIframe) actions.push({ label: '파일로 저장', run: () => downloadUrl(URL.createObjectURL(new Blob([text], { type: 'application/json' })), name) });
+  if (canSaveFiles()) actions.push({ label: '파일로 저장', run: () => { saveFile(name, 'application/json', utf8ToBase64(text)); } });
   actions.push({ label: '닫기' });
   modal({ title: '내보내기', body: wrap, actions });
 }
